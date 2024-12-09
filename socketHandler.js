@@ -5,7 +5,7 @@ const createRoom = async (pendingList, rooms) => {
     const newGroups = makePairs(pendingList);
 
     groups = [...groups, ...newGroups];
-    console.log("cmduehdf", groups);
+    // console.log("cmduehdf", groups);
 
     newGroups.forEach((group, index) => {
       // here create room unique id
@@ -16,8 +16,29 @@ const createRoom = async (pendingList, rooms) => {
     console.log("Waiting for another player to join...");
   }
 };
-const socketDisconnectHandler = async () => {
-  console.log("user disconnected ");
+
+const socketDisconnect = async (socket, pending_list, rooms) => {
+  console.log("User disconnected: ", socket.id);
+
+  const index = pending_list.indexOf(socket.id);
+  if (index > -1) {
+    pending_list.splice(index, 1); 
+  }
+
+  for (const room in rooms) {
+    for (const player in rooms[room]) {
+      if (rooms[room][player] === socket.id) {
+        delete rooms[room][player]; 
+      }
+    }
+
+    if (Object.keys(rooms[room]).length === 0) {
+      delete rooms[room];
+    }
+  }
+
+  console.log("Updated pending_list: ", pending_list);
+  console.log("Updated rooms: ", rooms);
 };
 
 function createGroup(player1, player2) {
@@ -34,4 +55,4 @@ function makePairs(list) {
   return pairs;
 }
 
-module.exports = { createRoom, socketDisconnectHandler };
+module.exports = { createRoom, socketDisconnect };

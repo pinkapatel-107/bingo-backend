@@ -1,6 +1,6 @@
 const { Server } = require("socket.io");
 const port = 3000;
-const { createRoom, socketDisconnectHandler } = require("./socketHandler");
+const { createRoom, socketDisconnect } = require("./socketHandler");
 
 const io = new Server(port, {
   cors: {
@@ -27,11 +27,12 @@ io.on("connection", async (socket) => {
   pending_list.push(socket.id);
   createRoom(pending_list, rooms);
 
-  socket.on("disconnect", () => {
-    socketDisconnectHandler(socket);
-  });
+  socket.on("disconnect", () =>
+    handleDisconnection(socket, pending_list, rooms)
+  );
 });
 
 console.log("socket server is runnig on", port);
 
-createRoom(pending_list, rooms);
+// createRoom(pending_list, rooms);
+// socketDisconnect(pending_list, rooms);

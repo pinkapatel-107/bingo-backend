@@ -18,11 +18,10 @@ io.on("connection", async (socket) => {
   pending_list.push(socket.id);
   createRoom(pending_list, rooms);
 
+  
+
   socket.on("disconnect", () => removeUser(socket, pending_list, rooms));
-  socket.on("onleave", () => removeUser(socket, pending_list, rooms));
+  socket.on("leaveRoom", () => removeUser(socket, pending_list, rooms));
 });
 
 console.log("socket server is runnig on", port);
-
-// createRoom(pending_list, rooms);
-// socketDisconnect(pending_list, rooms);

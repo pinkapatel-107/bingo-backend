@@ -11,6 +11,7 @@ const createRoom = async (pendingList, rooms) => {
       // here create room unique id
       const roomId = `room_${groups.length + index}`;
       rooms[roomId] = group;
+      assignPlayersToRoom(group, roomId);
     });
   } else {
     console.log("Waiting for another player to join...");
@@ -53,6 +54,12 @@ function makePairs(list) {
     pairs.push(createGroup(list.shift(), list.shift()));
   }
   return pairs;
+}
+function assignPlayersToRoom(group, roomId) {
+  [group.player1, group.player2].forEach((player, index) => {
+      io.to(player).emit('roomJoined', index === 0 ? 'firstturn' : 'secoundturn');
+      io.to(player).emit('onMove', { data: player });
+  });
 }
 
 module.exports = { createRoom, removeUser };

@@ -17,18 +17,18 @@ const createRoom = async (pendingList, rooms) => {
   }
 };
 
-const socketDisconnect = async (socket, pending_list, rooms) => {
+const removeUser = async (socket, pending_list, rooms) => {
   console.log("User disconnected: ", socket.id);
 
   const index = pending_list.indexOf(socket.id);
   if (index > -1) {
-    pending_list.splice(index, 1); 
+    pending_list.splice(index, 1);
   }
 
   for (const room in rooms) {
     for (const player in rooms[room]) {
       if (rooms[room][player] === socket.id) {
-        delete rooms[room][player]; 
+        delete rooms[room][player];
       }
     }
 
@@ -55,4 +55,4 @@ function makePairs(list) {
   return pairs;
 }
 
-module.exports = { createRoom, socketDisconnect };
+module.exports = { createRoom, removeUser };

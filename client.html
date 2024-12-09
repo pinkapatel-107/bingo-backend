@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.IO Client Test</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+  <h1>Socket.IO Client Test</h1>
+
+  <div>
+    <button id="connect">Connect to Server</button>
+    <button id="disconnect">Disconnect</button>
+    <button id="joinRoom">Join Room</button>
+    <button id="leaveRoom">Leave Room</button>
+  </div>
+
+  <div>
+    <h2>Logs</h2>
+    <div id="logs" style="border: 1px solid #ccc; padding: 10px; height: 200px; overflow-y: scroll;"></div>
+  </div>
+
+  <script>
+    let socket;
+    const logs = document.getElementById("logs");
+
+    // Helper function to log messages
+    function logMessage(message) {
+      const logEntry = document.createElement("p");
+      logEntry.textContent = message;
+      logs.appendChild(logEntry);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    // Connect to the Socket.IO server
+    document.getElementById("connect").addEventListener("click", () => {
+      socket = io("http://localhost:3000"); // Replace with your server's URL
+
+      socket.on("connect", () => {
+        logMessage("Connected to server with ID: " + socket.id);
+      });
+
+      socket.on("disconnect", () => {
+        logMessage("Disconnected from server");
+      });
+
+      socket.on("message", (data) => {
+        logMessage("Server message: " + data);
+      });
+    });
+
+    // Disconnect from the server
+    document.getElementById("disconnect").addEventListener("click", () => {
+      if (socket) {
+        socket.disconnect();
+        logMessage("Manually disconnected");
+      }
+    });
+
+    // Join a room
+    document.getElementById("joinRoom").addEventListener("click", () => {
+      if (socket) {
+        const roomName = prompt("Enter room name to join:", "room1");
+        socket.emit("joinRoom", { room: roomName });
+        logMessage("Joined room: " + roomName);
+      }
+    });
+
+    // Leave a room
+    document.getElementById("leaveRoom").addEventListener("click", () => {
+      if (socket) {
+        const roomName = prompt("Enter room name to leave:", "room1");
+        socket.emit("leaveRoom", { room: roomName });
+        logMessage("Left room: " + roomName);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 const { Server } = require("socket.io");
 const port = 3000;
-const { createRoom, socketDisconnect } = require("./socketHandler");
+const { createRoom, removeUser } = require("./socketHandler");
 
 const io = new Server(port, {
   cors: {
@@ -9,16 +9,7 @@ const io = new Server(port, {
   },
 });
 
-let pending_list = [
-  "pinka-123",
-  "shivangi-5252",
-  "rohan-5252",
-  "test-795",
-  "pinka-123",
-  "shivangi-5252",
-  "pinka-123",
-  "shivangi-5252",
-];
+let pending_list = [];
 let rooms = {};
 
 io.on("connection", async (socket) => {
@@ -27,9 +18,8 @@ io.on("connection", async (socket) => {
   pending_list.push(socket.id);
   createRoom(pending_list, rooms);
 
-  socket.on("disconnect", () =>
-    handleDisconnection(socket, pending_list, rooms)
-  );
+  socket.on("disconnect", () => removeUser(socket, pending_list, rooms));
+  socket.on("onleave", () => removeUser(socket, pending_list, rooms));
 });
 
 console.log("socket server is runnig on", port);

@@ -26,6 +26,7 @@
     const logs = document.getElementById("logs");
 
     // Helper function to log messages
+
     function logMessage(message) {
       const logEntry = document.createElement("p");
       logEntry.textContent = message;
@@ -38,16 +39,21 @@
       socket = io("http://localhost:3000"); // Replace with your server's URL
 
       socket.on("connect", () => {
+        // console.log("connect methods === >",socket)
         logMessage("Connected to server with ID: " + socket.id);
+        socket.on('roomJoined', (data) => {
+        // console.log("Room joined:", data);
+        logMessage(data.message);
+    });
       });
 
       socket.on("disconnect", () => {
         logMessage("Disconnected from server");
       });
 
-      socket.on("message", (data) => {
-        logMessage("Server message: " + data);
-      });
+      // socket.on("message", (data) => {
+      //   logMessage("Server message: " + data);
+      // });
     });
 
     // Disconnect from the server
@@ -59,22 +65,24 @@
     });
 
     // Join a room
-    document.getElementById("joinRoom").addEventListener("click", () => {
-      if (socket) {
-        const roomName = prompt("Enter room name to join:", "room1");
-        socket.emit("joinRoom", { room: roomName });
-        logMessage("Joined room: " + roomName);
-      }
-    });
+    // document.getElementById("joinRoom").addEventListener("click", () => {
+    //   if (socket) {
+    //     const roomName = prompt("Enter room name to join:", "room1");
+    //     socket.emit("joinRoom", { room: roomName });
+    //     logMessage("Joined room: " + roomName);
+    //   }
+    // });
 
     // Leave a room
+    
     document.getElementById("leaveRoom").addEventListener("click", () => {
       if (socket) {
-        const roomName = prompt("Enter room name to leave:", "room1");
-        socket.emit("leaveRoom", { room: roomName });
-        logMessage("Left room: " + roomName);
+        socket.disconnect();
+        logMessage("Manually disconnected d");
       }
     });
+    
+  
   </script>
 </body>
 </html>

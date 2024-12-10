@@ -1,6 +1,6 @@
 let groups = [];
 
-const createRoom = async (pendingList, rooms) => {
+const createRoom = async (pendingList, rooms, io) => {
   if (pendingList.length >= 2) {
     const newGroups = makePairs(pendingList);
 
@@ -9,9 +9,10 @@ const createRoom = async (pendingList, rooms) => {
 
     newGroups.forEach((group, index) => {
       // here create room unique id
-      const roomId = `room_${groups.length + index}`;
+      const roomId = `room_${groups.length+index}`;
       rooms[roomId] = group;
-      assignPlayersToRoom(group, roomId);
+
+      assignPlayersToRoom(group,io);
     });
   } else {
     console.log("Waiting for another player to join...");
@@ -19,11 +20,11 @@ const createRoom = async (pendingList, rooms) => {
 };
 
 const removeUser = async (socket, pending_list, rooms) => {
-  console.log("User disconnected: ", socket.id);
+  console.log("User disconnected: ", socket?.id);
 
-  const index = pending_list.indexOf(socket.id);
+  const index = pending_list?.indexOf(socket?.id);
   if (index > -1) {
-    pending_list.splice(index, 1);
+    pending_list?.splice(index, 1);
   }
 
   for (const room in rooms) {
@@ -33,11 +34,11 @@ const removeUser = async (socket, pending_list, rooms) => {
       }
     }
 
-    if (Object.keys(rooms[room]).length === 0) {
+    if (Object.keys(rooms[room]).length === 1) {
       delete rooms[room];
     }
   }
-
+  // io.emit("userLeavedRoom",true) // player after leave the from the room here need to delete those room as well need to send same flag to send client side 
   console.log("Updated pending_list: ", pending_list);
   console.log("Updated rooms: ", rooms);
 };
@@ -55,10 +56,10 @@ function makePairs(list) {
   }
   return pairs;
 }
-function assignPlayersToRoom(group, roomId) {
+function assignPlayersToRoom(group,io) {
   [group.player1, group.player2].forEach((player, index) => {
-      io.to(player).emit('roomJoined', index === 0 ? 'firstturn' : 'secoundturn');
-      io.to(player).emit('onMove', { data: player });
+    io.to(player).emit("roomJoined",{message:"successfully join room"});
+    console.log("successfully join room");
   });
 }
 

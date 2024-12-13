@@ -1,20 +1,18 @@
 let groups = [];
-
+let message;
 const createRoom = async (pendingList, rooms, io) => {
   if (pendingList.length >= 2) {
     const newGroups = makePairs(pendingList);
-
     groups = [...groups, ...newGroups];
-    // console.log("cmduehdf", groups);
 
     newGroups.forEach((group, index) => {
-      // here create room unique id
       const roomId = `room_${groups.length+index}`;
       rooms[roomId] = group;
 
       assignPlayersToRoom(group,io);
     });
-  } else {
+  } 
+  else {
     console.log("Waiting for another player to join...");
   }
 };
@@ -56,9 +54,10 @@ function makePairs(list) {
   }
   return pairs;
 }
+
 function assignPlayersToRoom(group,io) {
   [group.player1, group.player2].forEach((player, index) => {
-    io.to(player).emit("roomJoined",{message:"successfully join room"});
+    io.to(player).emit("roomJointed",{message:"successfully join room"});
     console.log("successfully join room");
   });
 }

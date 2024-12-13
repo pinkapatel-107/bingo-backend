@@ -2,9 +2,9 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const express = require("express");
 const bodyParser = require("body-parser");
-const { createRoom, removeUser } = require("./socketHandler");
+const { createRoom, removeUser,saveChatMessage } = require("./socketHandler");
 const authRoute = require("./Routes/auth.Route");
-const cors = require('cors')
+const cors = require("cors");
 
 const app = express();
 const port = 3000;
@@ -13,7 +13,7 @@ const port = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-require('./DBinit');
+require("./DBinit");
 // Routes
 app.use("/api/v1/auth", authRoute);
 
@@ -37,24 +37,27 @@ io.on("connection", (socket) => {
   pending_list.push(socket.id);
   createRoom(pending_list, rooms, io);
 
-  console.log("pending_list",pending_list);
-  console.log("rooms",rooms);
-
+  console.log("pending_list", pending_list);
+  console.log("rooms", rooms);
 
   socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
     removeUser(socket, pending_list, rooms);
   });
+  // SOCKET FOR CHAT
+  socket.on("joinChatRoom", async (data) => {
+    console.log("joinChatRoom ==== >", data);
 
-  socket.on("sendMessage", (data) => {
-    console.log("sendMessage ====>", data);
-
-    if (data.sender_id && data.receiver_id) {
-      io.to(data.receiver_id).emit("receiveMessage", data);
-      console.log("Message received and sent successfully ===>", data);
-    } else {
-      console.error("Invalid data: sender_id or receiver_id is missing");
+    const { userId } = data;
+    if (userId) {
+      socket.join(userId);
     }
+  });
+  socket.on("sendMessage", (data) => {
+    console.log("sendMessage ====>", data.receiver_id, "&", data.sender_id);
+    saveChatMessage(data,io)
+    // io.to(data.receiver_id || data.sender_id).emit("receiveMessage", data);
+    // console.log("Message received sent successfully ===>", data);
   });
 });
 

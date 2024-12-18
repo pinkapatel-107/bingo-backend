@@ -55,7 +55,7 @@ io.on("connection", (socket) => {
   });
   socket.on("sendMessage", (data) => {
     console.log("sendMessage ====>", data.receiver_id, "&", data.sender_id);
-    saveChatMessage(data,io)
+    saveChatMessage(data,io,socket)
     // io.to(data.receiver_id || data.sender_id).emit("receiveMessage", data);
     // console.log("Message received sent successfully ===>", data);
   });

@@ -58,10 +58,11 @@ const saveChatMessage = async (data, io, socket) => {
     .findById(chat._id)
     .populate({ path: "sender_id" })
     .populate({ path: "receiver_id" });
+  
   console.log("chat data === >", getchat);
   io.to(data.sender_id).emit("receiveMessage", getchat);
-  // io.to(data.receiver_id).emit("receiveMessage", getchat);
-  // socket.emit("receiveMessage", getchat);
+  io.to(data.receiver_id).emit("receiveMessage", getchat);
+  
 };
 
 function createGroup(player1, player2) {

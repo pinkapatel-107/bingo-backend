@@ -44,7 +44,7 @@ const removeUser = async (socket, pending_list, rooms) => {
   console.log("Updated rooms: ", rooms);
 };
 
-const saveChatMessage = async (data,io) => {
+const saveChatMessage = async (data, io) => {
   console.log("testing chat save chat fun");
 
   // const newMessage = {
@@ -54,10 +54,13 @@ const saveChatMessage = async (data,io) => {
   // };
 
   let chat = await chatModel.create(data);
-  let getchat = await chatModel.findById(chat._id).populate({path:"sender_id"}).populate({path:"receiver_id"})
-console.log("chat data === >",getchat);
-io.to(data.sender_id).emit("receiveMessage",getchat)
- 
+  let getchat = await chatModel
+    .findById(chat._id)
+    .populate({ path: "sender_id" })
+    .populate({ path: "receiver_id" });
+  console.log("chat data === >", getchat);
+  io.to(data.sender_id).emit("receiveMessage", getchat);
+  io.to(data.receiver_id).emit("receiveMessage", getchat);
 };
 
 function createGroup(player1, player2) {

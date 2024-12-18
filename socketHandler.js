@@ -54,10 +54,16 @@ const saveChatMessage = async (data, io, socket) => {
   // };
 
   let chat = await chatModel.create(data);
-  let getchat = await chatModel
-    .findById(chat._id)
-    .populate({ path: "sender_id" })
-    .populate({ path: "receiver_id" });
+  const getchat = await chatModel.find({
+    $or: [
+      { sender_id: req.query.user_id },
+      { receiver_id: req.query.user_id }
+    ]
+  });
+  // let getchat = await chatModel
+  //   .findById(chat._id)
+  //   .populate({ path: "sender_id" })
+  //   .populate({ path: "receiver_id" });
   console.log("chat data === >", getchat);
   socket.emit("receiveMessage", getchat);
   // io.to(data.sender_id).emit("receiveMessage", getchat);

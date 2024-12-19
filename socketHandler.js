@@ -56,14 +56,30 @@ const saveChatMessage = async (data, io, socket) => {
   let chat = await chatModel.create(data);
   let getchat = await chatModel
     .findById(chat._id)
-    .populate({ path: "sender_id" })
-    .populate({ path: "receiver_id" });
+    // .populate({ path: "sender_id" })
+    // .populate({ path: "receiver_id" });
   
   console.log("chat data === >", getchat);
   io.to(data.sender_id).emit("receiveMessage", getchat);
   io.to(data.receiver_id).emit("receiveMessage", getchat);
   
 };
+
+const getUserChatMessage = async (data) => {
+  try {
+    const chatMessages = await chatModel.find({
+      $or: [
+        { sender_id: data.currentUserId, receiver_id: data.selectedUserId },
+        { sender_id: data.selectedUserId, receiver_id: data.currentUserId }
+      ]
+    });
+    return chatMessages;
+  } catch (error) {
+    console.error("Error fetching chat messages:", error.message);
+    return null; 
+  }
+};
+
 
 function createGroup(player1, player2) {
   const group = { player1, player2 };
@@ -86,4 +102,4 @@ function assignPlayersToRoom(group, io) {
   });
 }
 
-module.exports = { createRoom, removeUser, saveChatMessage };
+module.exports = { createRoom, removeUser, saveChatMessage,getUserChatMessage };

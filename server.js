@@ -2,9 +2,10 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const express = require("express");
 const bodyParser = require("body-parser");
-const { createRoom, removeUser,saveChatMessage } = require("./socketHandler");
+const { createRoom, removeUser,saveChatMessage,getUserChatMessage } = require("./socketHandler");
 const authRoute = require("./Routes/auth.Route");
 const cors = require("cors");
+const { on } = require("events");
 
 const app = express();
 const port = 3000;
@@ -59,6 +60,23 @@ io.on("connection", (socket) => {
     // io.to(data.receiver_id || data.sender_id).emit("receiveMessage", data);
     // console.log("Message received sent successfully ===>", data);
   });
+  socket.on('receiveUserChat', async (data) => {
+    console.log("receiveUserChat",data);
+    try {
+      const chatMessages = await getUserChatMessage(data);
+      if (chatMessages) {
+        socket.emit('userChatMessages', chatMessages);
+        console.log("receiveUserChat 222",chatMessages);
+      } else {
+        socket.emit('userChatMessages', { error: "No messages found for this user." });
+      }
+    } catch (error) {
+      console.error("Error in receiveUserChat:", error.message);
+      socket.emit('userChatMessages', { error: "Failed to fetch chat messages." });
+    }
+  });
+  
+  
 });
 
 // Start the server

@@ -2,7 +2,7 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const express = require("express");
 const bodyParser = require("body-parser");
-const { createRoom, removeUser,saveChatMessage,getUserChatMessage } = require("./socketHandler");
+const { createRoom, removeUser,saveChatMessage,getUserChatMessage,findRoomByPlayerId } = require("./socketHandler");
 const authRoute = require("./Routes/auth.Route");
 const cors = require("cors");
 const { on } = require("events");
@@ -36,7 +36,7 @@ let rooms = {};
 io.on("connection", (socket) => {
   console.log(`A user connected: ${socket.id}`);
   pending_list.push(socket.id);
-  createRoom(pending_list, rooms, io);
+  createRoom(pending_list, rooms, io,socket);
 
   console.log("pending_list", pending_list);
   console.log("rooms", rooms);
@@ -45,6 +45,7 @@ io.on("connection", (socket) => {
     console.log(`User disconnected: ${socket.id}`);
     removeUser(socket, pending_list, rooms);
   });
+
   // SOCKET FOR CHAT
   socket.on("joinChatRoom", async (data) => {
     console.log("joinChatRoom ==== >", data);
@@ -55,10 +56,8 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("sendMessage", (data) => {
-    console.log("sendMessage ====>", data.receiver_id, "&", data.sender_id);
+    // console.log("sendMessage ====>", data.receiver_id, "&", data.sender_id);
     saveChatMessage(data,io,socket)
-    // io.to(data.receiver_id || data.sender_id).emit("receiveMessage", data);
-    // console.log("Message received sent successfully ===>", data);
   });
   socket.on('receiveUserChat', async (data) => {
     console.log("receiveUserChat",data);
@@ -66,7 +65,7 @@ io.on("connection", (socket) => {
       const chatMessages = await getUserChatMessage(data);
       if (chatMessages) {
         socket.emit('userChatMessages', chatMessages);
-        console.log("receiveUserChat 222",chatMessages);
+        // console.log("receiveUserChat 222",chatMessages);
       } else {
         socket.emit('userChatMessages', { error: "No messages found for this user." });
       }
@@ -75,10 +74,27 @@ io.on("connection", (socket) => {
       socket.emit('userChatMessages', { error: "Failed to fetch chat messages." });
     }
   });
+   //SOCKET FOR BINGO 
+   socket.on('sendNumber', async (data) => {
+    console.log("Available rooms:", rooms);
+    console.log("Socket ID sending the number:", socket.id);
+  
+    const group = findRoomByPlayerId(socket.id);
+    console.log("group ==== >",group)
+    if (!group) {
+      console.error("Group not found for socket ID:", socket.id);
+      return;
+    }
+  
+    const { roomName, players } = group;
+    const receiverId = socket.id === players.player1 ? players.player2 : players.player1;
+  
+    io.to(receiverId).emit('receiveNumber', data);
+    console.log(`Number sent to ${receiverId} from ${socket.id} in room ${roomName}`);
+  });
   
   
 });
-
 // Start the server
 httpServer.listen(port, () => {
   console.log(`Server running on port ${port}`);

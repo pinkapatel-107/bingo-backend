@@ -4,7 +4,7 @@ const chatModel = require("./Model/chat.model");
 let groups = [];
 let message;
 
-const createRoom = async (pendingList, rooms, io) => {
+const createRoom = async (pendingList, rooms, io, socket) => {
   if (pendingList.length >= 2) {
     const newGroups = makePairs(pendingList);
     groups = [...groups, ...newGroups];
@@ -13,7 +13,7 @@ const createRoom = async (pendingList, rooms, io) => {
       const roomId = `room_${groups.length + index}`;
       rooms[roomId] = group;
 
-      assignPlayersToRoom(group, io);
+      assignPlayersToRoom(group, io, socket);
     });
   } else {
     console.log("Waiting for another player to join...");
@@ -54,15 +54,13 @@ const saveChatMessage = async (data, io, socket) => {
   // };
 
   let chat = await chatModel.create(data);
-  let getchat = await chatModel
-    .findById(chat._id)
-    // .populate({ path: "sender_id" })
-    // .populate({ path: "receiver_id" });
-  
+  let getchat = await chatModel.findById(chat._id);
+  // .populate({ path: "sender_id" })
+  // .populate({ path: "receiver_id" });
+
   console.log("chat data === >", getchat);
   io.to(data.sender_id).emit("receiveMessage", getchat);
   io.to(data.receiver_id).emit("receiveMessage", getchat);
-  
 };
 
 const getUserChatMessage = async (data) => {
@@ -70,16 +68,15 @@ const getUserChatMessage = async (data) => {
     const chatMessages = await chatModel.find({
       $or: [
         { sender_id: data.currentUserId, receiver_id: data.selectedUserId },
-        { sender_id: data.selectedUserId, receiver_id: data.currentUserId }
-      ]
+        { sender_id: data.selectedUserId, receiver_id: data.currentUserId },
+      ],
     });
     return chatMessages;
   } catch (error) {
     console.error("Error fetching chat messages:", error.message);
-    return null; 
+    return null;
   }
 };
-
 
 function createGroup(player1, player2) {
   const group = { player1, player2 };
@@ -94,12 +91,36 @@ function makePairs(list) {
   }
   return pairs;
 }
-
-function assignPlayersToRoom(group, io) {
+function assignPlayersToRoom(group, io, socket) {
   [group.player1, group.player2].forEach((player, index) => {
-    io.to(player).emit("roomJointed", { message: "successfully join room" });
-    console.log("successfully join room");
+    io.to(player).emit("roomJointed", { 
+      player: index === 0 ? "first player" : "second player",
+      message: "Successfully joined room"
+    });
+    // socket.on('sendNumber',async(data)=>{
+    //   io.to(player).emit('receiveNumber',data);
+    //   console.log("sendNumber === >",data)
+    // });
+   
   });
 }
 
-module.exports = { createRoom, removeUser, saveChatMessage,getUserChatMessage };
+function findRoomByPlayerId(rooms, playerId) {
+  for (const [roomName, players] of Object.entries(rooms)) {
+    if (players.player1 === playerId || players.player2 === playerId) {
+      return { roomName, players };
+    }
+  }
+  return null; 
+}
+
+
+
+
+module.exports = {
+  createRoom,
+  removeUser,
+  saveChatMessage,
+  getUserChatMessage,
+  findRoomByPlayerId
+};

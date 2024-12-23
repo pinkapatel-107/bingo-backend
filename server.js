@@ -2,7 +2,13 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const express = require("express");
 const bodyParser = require("body-parser");
-const { createRoom, removeUser,saveChatMessage,getUserChatMessage,findRoomByPlayerSocketId } = require("./socketHandler");
+const {
+  createRoom,
+  removeUser,
+  saveChatMessage,
+  getUserChatMessage,
+  findRoomByPlayerSocketId,
+} = require("./socketHandler");
 const authRoute = require("./Routes/auth.Route");
 const cors = require("cors");
 const { on } = require("events");
@@ -36,7 +42,7 @@ let rooms = {};
 io.on("connection", (socket) => {
   console.log(`A user connected: ${socket.id}`);
   pending_list.push(socket.id);
-  createRoom(pending_list, rooms, io,socket);
+  createRoom(pending_list, rooms, io, socket);
 
   console.log("pending_list", pending_list);
   console.log("rooms", rooms);
@@ -57,40 +63,47 @@ io.on("connection", (socket) => {
   });
   socket.on("sendMessage", (data) => {
     // console.log("sendMessage ====>", data.receiver_id, "&", data.sender_id);
-    saveChatMessage(data,io,socket)
+    saveChatMessage(data, io, socket);
   });
-  socket.on('receiveUserChat', async (data) => {
-    console.log("receiveUserChat",data);
+  socket.on("receiveUserChat", async (data) => {
+    console.log("receiveUserChat", data);
     try {
       const chatMessages = await getUserChatMessage(data);
       if (chatMessages) {
-        socket.emit('userChatMessages', chatMessages);
+        socket.emit("userChatMessages", chatMessages);
         // console.log("receiveUserChat 222",chatMessages);
       } else {
-        socket.emit('userChatMessages', { error: "No messages found for this user." });
+        socket.emit("userChatMessages", {
+          error: "No messages found for this user.",
+        });
       }
     } catch (error) {
       console.error("Error in receiveUserChat:", error.message);
-      socket.emit('userChatMessages', { error: "Failed to fetch chat messages." });
+      socket.emit("userChatMessages", {
+        error: "Failed to fetch chat messages.",
+      });
     }
   });
-   //SOCKET FOR BINGO 
-   socket.on('sendNumber', async (data) => {
+  //SOCKET FOR BINGO
+  socket.on("sendNumber", async (data) => {
     console.log("Available rooms:", rooms);
     console.log("Socket ID sending the number:", socket.id);
-  
-    const group = findRoomByPlayerSocketId(rooms,socket.id);
-    console.log("group ==== >",group)
+
+    const group = findRoomByPlayerSocketId(rooms, socket.id);
+    console.log("group ==== >", group);
     if (!group) {
       console.error("Group not found for socket ID:", socket.id);
       return;
     }
-    io.to(group?.roomDetails?.player1).emit('receiveNumber', data);
-    io.to(group?.roomDetails?.player2).emit('receiveNumber', data);
-   
+    io.to(group?.roomDetails?.player1).emit("receiveNumber", data);
+    io.to(group?.roomDetails?.player2).emit("receiveNumber", data);
+
+    socket.on("onTurnChanges", async (data) => {
+      console.log("onTurnChanges ==== >", data);
+      io.to(group?.roomDetails?.player1).emit("playerTurnChange", data);
+      io.to(group?.roomDetails?.player2).emit("playerTurnChange", data);
+    });
   });
-  
-  
 });
 // Start the server
 httpServer.listen(port, () => {

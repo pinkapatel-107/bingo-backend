@@ -34,7 +34,6 @@ const removeUser = async (socket, pending_list, rooms) => {
         delete rooms[room][player];
       }
     }
-
     if (Object.keys(rooms[room]).length === 1) {
       delete rooms[room];
     }

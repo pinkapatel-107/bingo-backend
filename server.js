@@ -2,7 +2,7 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const express = require("express");
 const bodyParser = require("body-parser");
-const { createRoom, removeUser,saveChatMessage,getUserChatMessage,findRoomByPlayerId } = require("./socketHandler");
+const { createRoom, removeUser,saveChatMessage,getUserChatMessage,findRoomByPlayerSocketId } = require("./socketHandler");
 const authRoute = require("./Routes/auth.Route");
 const cors = require("cors");
 const { on } = require("events");
@@ -79,18 +79,15 @@ io.on("connection", (socket) => {
     console.log("Available rooms:", rooms);
     console.log("Socket ID sending the number:", socket.id);
   
-    const group = findRoomByPlayerId(socket.id);
+    const group = findRoomByPlayerSocketId(rooms,socket.id);
     console.log("group ==== >",group)
     if (!group) {
       console.error("Group not found for socket ID:", socket.id);
       return;
     }
-  
-    const { roomName, players } = group;
-    const receiverId = socket.id === players.player1 ? players.player2 : players.player1;
-  
-    io.to(receiverId).emit('receiveNumber', data);
-    console.log(`Number sent to ${receiverId} from ${socket.id} in room ${roomName}`);
+    io.to(group?.roomDetails?.player1).emit('receiveNumber', data);
+    io.to(group?.roomDetails?.player2).emit('receiveNumber', data);
+   
   });
   
   

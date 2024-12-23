@@ -93,34 +93,30 @@ function makePairs(list) {
 }
 function assignPlayersToRoom(group, io, socket) {
   [group.player1, group.player2].forEach((player, index) => {
-    io.to(player).emit("roomJointed", { 
+    io.to(player).emit("roomJointed", {
       player: index === 0 ? "first player" : "second player",
-      message: "Successfully joined room"
+      message: "Successfully joined room",
     });
     // socket.on('sendNumber',async(data)=>{
     //   io.to(player).emit('receiveNumber',data);
     //   console.log("sendNumber === >",data)
     // });
-   
   });
 }
 
-function findRoomByPlayerId(rooms, playerId) {
-  for (const [roomName, players] of Object.entries(rooms)) {
+const findRoomByPlayerSocketId = (rooms, playerId) => {
+  for (const [room, players] of Object.entries(rooms)) {
     if (players.player1 === playerId || players.player2 === playerId) {
-      return { roomName, players };
+      return { roomName: room, roomDetails: players };
     }
   }
-  return null; 
-}
-
-
-
+  return null;
+};
 
 module.exports = {
   createRoom,
   removeUser,
   saveChatMessage,
   getUserChatMessage,
-  findRoomByPlayerId
+  findRoomByPlayerSocketId,
 };

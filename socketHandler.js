@@ -38,9 +38,8 @@ const removeUser = async (socket, pending_list, rooms) => {
       delete rooms[room];
     }
   }
-  // io.emit("userLeavedRoom",true) // player after leave the from the room here need to delete those room as well need to send same flag to send client side
-  console.log("Updated pending_list: ", pending_list);
-  console.log("Updated rooms: ", rooms);
+  // console.log("Updated pending_list: ", pending_list);
+  // console.log("Updated rooms: ", rooms);
 };
 
 const saveChatMessage = async (data, io, socket) => {
@@ -111,6 +110,12 @@ const findRoomByPlayerSocketId = (rooms, playerId) => {
   }
   return null;
 };
+function notifyGameDisconnection(opponentId,io) {
+  io.to(opponentId).emit('opponentDisconnected', {
+      message: 'Your opponent has disconnected. Find a new opponent?',
+      action: 'wait_or_quit',
+  });
+}
 
 module.exports = {
   createRoom,
@@ -118,4 +123,5 @@ module.exports = {
   saveChatMessage,
   getUserChatMessage,
   findRoomByPlayerSocketId,
+  notifyGameDisconnection
 };

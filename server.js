@@ -8,6 +8,7 @@ const {
   saveChatMessage,
   getUserChatMessage,
   findRoomByPlayerSocketId,
+  notifyGameDisconnection,
 } = require("./socketHandler");
 const authRoute = require("./Routes/auth.Route");
 const cors = require("cors");
@@ -48,10 +49,23 @@ io.on("connection", (socket) => {
   console.log("rooms", rooms);
 
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
+    console.log("User disconnected:", socket.id);
+    console.log("after disconnect room chekc ==== >",rooms)
+    if (rooms) {
+      const group = findRoomByPlayerSocketId(rooms, socket.id);
+      let opponentId;
+      if (group?.roomDetails?.player1 !== socket.id) {
+          opponentId = group?.roomDetails?.player1;
+      } else if (group?.roomDetails?.player2 !== socket.id) {
+          opponentId = group?.roomDetails?.player2;
+      }
+      console.log("opponentId ==== >",opponentId)
+      notifyGameDisconnection(opponentId,io)
+      removeUser(socket, pending_list, rooms);
+      console.log("after disconnect group ==== >", rooms);
+    }
     removeUser(socket, pending_list, rooms);
   });
-
   // SOCKET FOR CHAT
   socket.on("joinChatRoom", async (data) => {
     console.log("joinChatRoom ==== >", data);
@@ -86,11 +100,7 @@ io.on("connection", (socket) => {
   });
   //SOCKET FOR BINGO
   socket.on("sendNumber", async (data) => {
-    console.log("Available rooms:", rooms);
-    console.log("Socket ID sending the number:", socket.id);
-
     const group = findRoomByPlayerSocketId(rooms, socket.id);
-    console.log("group ==== >", group);
     if (!group) {
       console.error("Group not found for socket ID:", socket.id);
       return;
@@ -99,13 +109,12 @@ io.on("connection", (socket) => {
     io.to(group?.roomDetails?.player2).emit("receiveNumber", data);
 
     socket.on("onTurnChanges", async (data) => {
-      console.log("onTurnChanges ==== >", data);
       io.to(group?.roomDetails?.player1).emit("playerTurnChange", data);
       io.to(group?.roomDetails?.player2).emit("playerTurnChange", data);
     });
   });
 });
-// Start the server
+
 httpServer.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

@@ -118,10 +118,10 @@ io.on("connection", (socket) => {
       let messageForPlayer1, messageForPlayer2;
         if (group.roomDetails.player1 === data) {
           messageForPlayer1 = "You are the winner!";
-          messageForPlayer2 = "Next time, better luck!";
+          messageForPlayer2 = "Better Luck, next time!";
         } else if  (group.roomDetails.player2 === data) {
           messageForPlayer1 = "Next time, better luck!";
-          messageForPlayer2 = "You are the winner!";
+          messageForPlayer2 = "Better Luck, next time!!";
         } 
         io.to(group.roomDetails.player1).emit("onGameStatus", messageForPlayer1);
         io.to(group.roomDetails.player2).emit("onGameStatus", messageForPlayer2);

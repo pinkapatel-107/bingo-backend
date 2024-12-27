@@ -101,6 +101,7 @@ io.on("connection", (socket) => {
   //SOCKET FOR BINGO
   socket.on("sendNumber", async (data) => {
     const group = findRoomByPlayerSocketId(rooms, socket.id);
+    console.log("check existing group ===== >",group);
     if (!group) {
       console.error("Group not found for socket ID:", socket.id);
       return;
@@ -111,6 +112,22 @@ io.on("connection", (socket) => {
     socket.on("onTurnChanges", async (data) => {
       io.to(group?.roomDetails?.player1).emit("playerTurnChange", data);
       io.to(group?.roomDetails?.player2).emit("playerTurnChange", data);
+    });
+    socket.on('playerGameStatus', async (data) => {
+      const group = findRoomByPlayerSocketId(rooms, socket.id);
+      let messageForPlayer1, messageForPlayer2;
+        if (group.roomDetails.player1 === data) {
+          messageForPlayer1 = "You are the winner!";
+          messageForPlayer2 = "Next time, better luck!";
+        } else if  (group.roomDetails.player2 === data) {
+          messageForPlayer1 = "Next time, better luck!";
+          messageForPlayer2 = "You are the winner!";
+        } 
+        io.to(group.roomDetails.player1).emit("onGameStatus", messageForPlayer1);
+        io.to(group.roomDetails.player2).emit("onGameStatus", messageForPlayer2);
+
+        console.log("messageForPlayer1 ==== >",messageForPlayer1);
+        console.log("messageForPlayer2 ===== >",messageForPlayer2)
     });
   });
 });

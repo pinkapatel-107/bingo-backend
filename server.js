@@ -50,17 +50,17 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
-    console.log("after disconnect room chekc ==== >",rooms)
+    console.log("after disconnect room chekc ==== >", rooms);
     if (rooms) {
       const group = findRoomByPlayerSocketId(rooms, socket.id);
       let opponentId;
       if (group?.roomDetails?.player1 !== socket.id) {
-          opponentId = group?.roomDetails?.player1;
+        opponentId = group?.roomDetails?.player1;
       } else if (group?.roomDetails?.player2 !== socket.id) {
-          opponentId = group?.roomDetails?.player2;
+        opponentId = group?.roomDetails?.player2;
       }
-      console.log("opponentId ==== >",opponentId)
-      notifyGameDisconnection(opponentId,io)
+      console.log("opponentId ==== >", opponentId);
+      notifyGameDisconnection(opponentId, io);
       removeUser(socket, pending_list, rooms);
       console.log("after disconnect group ==== >", rooms);
     }
@@ -101,7 +101,7 @@ io.on("connection", (socket) => {
   //SOCKET FOR BINGO
   socket.on("sendNumber", async (data) => {
     const group = findRoomByPlayerSocketId(rooms, socket.id);
-    console.log("check existing group ===== >",group);
+    console.log("check existing group ===== >", group);
     if (!group) {
       console.error("Group not found for socket ID:", socket.id);
       return;
@@ -113,21 +113,22 @@ io.on("connection", (socket) => {
       io.to(group?.roomDetails?.player1).emit("playerTurnChange", data);
       io.to(group?.roomDetails?.player2).emit("playerTurnChange", data);
     });
-    socket.on('playerGameStatus', async (data) => {
+    socket.on("playerGameStatus", async (data) => {
       const group = findRoomByPlayerSocketId(rooms, socket.id);
       let messageForPlayer1, messageForPlayer2;
-        if (group.roomDetails.player1 === data) {
-          messageForPlayer1 = "You are the winner!";
-          messageForPlayer2 = "Better Luck, next time!";
-        } else if  (group.roomDetails.player2 === data) {
-          messageForPlayer1 = "You are the winner!";
-          messageForPlayer2 = "Better Luck, next time!";
-        } 
-        io.to(group.roomDetails.player1).emit("onGameStatus", messageForPlayer1);
-        io.to(group.roomDetails.player2).emit("onGameStatus", messageForPlayer2);
+      if (group.roomDetails.player1 === data) {
+        messageForPlayer1 = "You are the winner!";
+        messageForPlayer2 = "Better Luck, next time!";
+      } else if (group.roomDetails.player2 === data) {
+        messageForPlayer1 = "Better Luck, next time!";
+        messageForPlayer2 = "You are the winner!";
+      }
 
-        console.log("messageForPlayer1 ==== >",messageForPlayer1);
-        console.log("messageForPlayer2 ===== >",messageForPlayer2)
+      io.to(group.roomDetails.player1).emit("onGameStatus", messageForPlayer1);
+      io.to(group.roomDetails.player2).emit("onGameStatus", messageForPlayer2);
+
+      console.log("messageForPlayer1 ==== >", messageForPlayer1);
+      console.log("messageForPlayer2 ===== >", messageForPlayer2);
     });
   });
 });

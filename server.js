@@ -9,10 +9,12 @@ const {
   getUserChatMessage,
   findRoomByPlayerSocketId,
   notifyGameDisconnection,
+  getOpponentSocketId
 } = require("./socketHandler");
 const authRoute = require("./Routes/auth.Route");
 const cors = require("cors");
 const { on } = require("events");
+const User = require("./Model/user.Model");
 
 const app = express();
 const port = 3000;
@@ -66,7 +68,7 @@ io.on("connection", (socket) => {
     }
     removeUser(socket, pending_list, rooms);
   });
-  // SOCKET FOR CHAT
+  // SOCKET FOR  multiple CHAT 
   socket.on("joinChatRoom", async (data) => {
     console.log("joinChatRoom ==== >", data);
 
@@ -131,6 +133,15 @@ io.on("connection", (socket) => {
       console.log("messageForPlayer2 ===== >", messageForPlayer2);
     });
   });
+  // CHAT IN BINGO
+  socket.on("sendMessage1",async(data)=>{
+    const group = findRoomByPlayerSocketId(rooms, socket.id);
+    if(group){
+    const receiver_id = getOpponentSocketId(socket.id,group);
+    console.log("check opponents===== >",receiver_id);
+    io.to(receiver_id).emit('receiveMessage',{user:"",message:data.message})
+  }
+  }) 
 });
 
 httpServer.listen(port, () => {

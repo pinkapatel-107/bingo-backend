@@ -75,6 +75,15 @@ const getUserChatMessage = async (data) => {
     return null;
   }
 };
+const getOpponentSocketId = (socketId,group) => {
+  if (socketId === group.roomDetails.player1) {
+    return group.roomDetails.player2; 
+  } else if (socketId === group.roomDetails.player2) {
+    return group.roomDetails.player1; 
+  } else {
+    return null; 
+  }
+};
 
 function createGroup(player1, player2) {
   const group = { player1, player2 };
@@ -115,7 +124,9 @@ function notifyGameDisconnection(opponentId,io) {
       message: 'Your opponent has disconnected. Find a new opponent?',
       action: 'wait_or_quit',
   });
-}
+};
+
+
 
 module.exports = {
   createRoom,
@@ -123,5 +134,6 @@ module.exports = {
   saveChatMessage,
   getUserChatMessage,
   findRoomByPlayerSocketId,
-  notifyGameDisconnection
+  notifyGameDisconnection,
+  getOpponentSocketId
 };

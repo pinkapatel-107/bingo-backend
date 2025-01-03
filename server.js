@@ -15,6 +15,7 @@ const authRoute = require("./Routes/auth.Route");
 const cors = require("cors");
 const { on } = require("events");
 const User = require("./Model/user.Model");
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const port = 3000;
@@ -134,15 +135,16 @@ io.on("connection", (socket) => {
     });
   });
   // CHAT IN BINGO
-  socket.on("sendMessage1",async(data)=>{
+  socket.on("sendMessage1", async (data) => {
     const group = findRoomByPlayerSocketId(rooms, socket.id);
-    if(group){
-    const receiver_id = getOpponentSocketId(socket.id,group);
-    console.log("check opponents===== >",receiver_id);
-    io.to(receiver_id).emit('receiveMessage',{user:"",message:data.message})
-    io.to(socket.id).emit('receiveMessage',{user:"You",message:data.message})
-  }
-  }) 
+    const messageId = uuidv4(); 
+  
+    if (group) {
+      const receiver_id = getOpponentSocketId(socket.id, group);
+      io.to(receiver_id).emit('receiveMessage', {user: "",message: data.message,msgId: messageId});
+      socket.emit('receiveMessage', {user: "You",message: data.message,msgId: messageId,});
+    }
+  });
 });
 
 httpServer.listen(port, () => {

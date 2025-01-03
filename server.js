@@ -140,6 +140,7 @@ io.on("connection", (socket) => {
     const receiver_id = getOpponentSocketId(socket.id,group);
     console.log("check opponents===== >",receiver_id);
     io.to(receiver_id).emit('receiveMessage',{user:"",message:data.message})
+    io.to(socket.id).emit('receiveMessage',{user:"You",message:data.message})
   }
   }) 
 });
